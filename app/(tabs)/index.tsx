@@ -29,7 +29,7 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Preisscanner</ThemedText>
+        <ThemedText type="title">Preistags</ThemedText>
         <HelloWave />
       </ThemedView>
         <View>
