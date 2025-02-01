@@ -1,4 +1,4 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import {StyleSheet, Image, Platform, Text} from 'react-native';
 
 import { Collapsible } from '@/components/Collapsible';
 import { ExternalLink } from '@/components/ExternalLink';
@@ -10,7 +10,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 export default function TabTwoScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
+      headerBackgroundColor={{ light: '#D0D0Df', dark: '#3536a0' }}
       headerImage={
         <IconSymbol
           size={310}
@@ -19,6 +19,9 @@ export default function TabTwoScreen() {
           style={styles.headerImage}
         />
       }>
+        <ThemedText style={styles.container}>
+            <Text>Open up App.js und so weiter Bla bla bla</Text>
+        </ThemedText>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Explore</ThemedText>
       </ThemedView>
@@ -96,6 +99,11 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
   headerImage: {
     color: '#808080',
     bottom: -90,
