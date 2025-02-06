@@ -7,7 +7,7 @@ import {
     Button,
     View,
     TouchableWithoutFeedback,
-    TouchableOpacity
+    TouchableOpacity, FlatList, RefreshControl
 } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
@@ -15,9 +15,40 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import {Collapsible} from "@/components/Collapsible";
-
+import {collection, getDocs} from "@firebase/firestore";
+import { db } from "@/firebaseconfig";
+import {useEffect, useState} from "react";
+import Pricetag from "@/app/types/Pricetag";
+import {TextInput} from "react-native-paper";
 export default function HomeScreen() {
-    const handlePress = () => console.log("Ein Button wurde angeklickt")
+    const [preistags, setPreistags] = useState<Pricetag[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const loadPreistags = async () => {
+        setIsRefreshing(true); // Starten der Laderoutine
+        try {
+            const querySnapshot = await getDocs(collection(db, "pricetags"));
+            const tagsArray: Pricetag[] = querySnapshot.docs.map(doc => ({
+                ...doc.data(),
+                entries: doc.data().entries || [],
+            })) as Pricetag[];
+            setPreistags(tagsArray);
+        } catch (error) {
+            console.error("Fehler beim Laden der Preistags:", error);
+        } finally {
+            setIsRefreshing(false); // Ladevorgang beenden
+        }
+    };
+
+    useEffect(() => {
+            loadPreistags();
+    }, []);
+
+    // 🟢 Gefilterte Liste basierend auf dem Suchbegriff
+    const filteredPreistags = preistags.filter(tag =>
+        tag.productName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   return (
     <ParallaxScrollView
@@ -37,48 +68,47 @@ export default function HomeScreen() {
         </View>
         <ThemedView style={styles.stepContainer}>
             <ThemedText type="subtitle">Fressroulette</ThemedText>
-            <Collapsible title={"Rezepte"}>
                 <ThemedText numberOfLines={1}>Hier sind die Rezepte drin. das ist ein sehr langer Text.</ThemedText>
-                <Button title={"Rezepte anzeigen"} onPress={handlePress} />
-            </Collapsible>
         </ThemedView>
-        <ThemedView style={styles.stepContainer}>
-            <View style={{width: '125%', height: 200, left: '-10%' }}>
-                <TouchableOpacity onPress={handlePress}>
-                <Image source={require('../../assets/images/whisky.jpg')} style={{ width: '100%', height: '100%', resizeMode: 'cover' }}  />
-                </TouchableOpacity>
-            </View>
-        </ThemedView>
+        <TextInput
+            style={styles.input}
+            placeholder="Produktname suchen..."
+            value={searchQuery}
+            keyboardType="default"
+            onChangeText={setSearchQuery}
+        />
+
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+          <FlatList
+              data={filteredPreistags}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                  <View style={styles.card}>
+                      {/* Produktname */}
+                      <ThemedText style={styles.productName}>{item.productName}</ThemedText>
+
+                      {/* Unterliste der Entries */}
+                      <FlatList
+                          data={item.entries}
+                          keyExtractor={(entry, idx) => idx.toString()}
+                          renderItem={({ item: entry }) => (
+                              <View style={styles.entry}>
+                                  <ThemedText style={styles.entryText}>📍 {entry.location}</ThemedText>
+                                  <ThemedText style={styles.entryText}>💰 {entry.price} €</ThemedText>
+                                  <ThemedText style={styles.entryText}>📦 {entry.amount} Stück</ThemedText>
+                                  <ThemedText style={styles.entryText}>📅 {new Date(entry.date.toDate()).toLocaleDateString()}</ThemedText>
+                              </View>
+                          )}
+                      />
+                  </View>
+              )}
+              refreshControl={
+                  <RefreshControl
+                      refreshing={isRefreshing}
+                      onRefresh={loadPreistags} // Beim Wischen nach unten wird die Funktion aufgerufen
+                  />
+              }
+          />
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -101,4 +131,45 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
+    input: {
+        height: 40,
+        borderColor: "#ccc",
+        borderWidth: 1,
+        marginBottom: 10,
+        paddingHorizontal: 8,
+        borderRadius: 5,
+    },
+    card: {
+        backgroundColor: "#f9f9f9",
+        padding: 15,
+        marginBottom: 10,
+        borderRadius: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        color: "#000",
+    },
+    productName: {
+        fontSize: 18,
+        color: "black",
+        fontWeight: "bold",
+        marginBottom: 5,
+    },
+    entry: {
+        backgroundColor: "#c0c0c0",
+        color: "black",
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 12,
+    },
+    entryText: {
+      color: "black",
+    }
 });

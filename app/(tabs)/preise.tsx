@@ -1,9 +1,11 @@
-import {Alert, Button, FlatList, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View} from "react-native";
+import {Alert, Button, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View} from "react-native";
+import {TextInput} from "react-native-paper";
 import {ThemedText} from "@/components/ThemedText";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {data} from "@/app/pricetags";
 import {useState} from "react";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
+import {PaperProvider} from "react-native-paper";
 
 const Separator = () => <View style={styles.separator} />;
 
@@ -34,7 +36,7 @@ export default function Preise() {
     );
 
     return (
-        <SafeAreaProvider>
+        <PaperProvider>
         <SafeAreaView style={styles.container}>
             <ThemedText style={styles.text}>Preis-Tags</ThemedText>
             <View style={styles.inputContainer}>
@@ -56,7 +58,7 @@ export default function Preise() {
                 contentContainerStyle={{ flexGrow: 1 }}/>
 
         </SafeAreaView>
-        </SafeAreaProvider>
+        </PaperProvider>
     );
 }
 
@@ -81,6 +83,7 @@ const styles = StyleSheet.create({
     addButton: {
         height: 50,
         padding: 10,
+        marginLeft: 10,
         backgroundColor: "lightblue",
         justifyContent: "center",
         borderRadius: 5,
@@ -102,12 +105,9 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        height: 50,
+
         width: "90%",
-        margin: 12,
-        borderWidth: 1,
-        borderRadius: 15,
-        padding: 10,
+        marginVertical: 15,
     },
     separator: {
         marginVertical: 18,
