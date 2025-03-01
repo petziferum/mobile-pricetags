@@ -24,7 +24,13 @@ export default function HomeScreen() {
     const [preistags, setPreistags] = useState<Pricetag[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isRefreshing, setIsRefreshing] = useState(false);
-
+    const getKiloPreis = (gram, price) => {
+        if(gram) {
+            const p = parseFloat(price.replace(",", "."));
+            const g = parseFloat(gram);
+            return ((p / g) * 1000).toFixed(2);
+        } else return "-";
+    }
     const loadPreistags = async () => {
         setIsRefreshing(true); // Starten der Laderoutine
         try {
@@ -93,10 +99,11 @@ export default function HomeScreen() {
                           keyExtractor={(entry, idx) => idx.toString()}
                           renderItem={({ item: entry }) => (
                               <View style={styles.entry}>
+                                  <ThemedText style={styles.entryText}>📅 {new Date(entry.date.toDate()).toLocaleDateString()}</ThemedText>
                                   <ThemedText style={styles.entryText}>📍 {entry.location}</ThemedText>
                                   <ThemedText style={styles.entryText}>💰 {entry.price} €</ThemedText>
-                                  <ThemedText style={styles.entryText}>📦 {entry.amount} Stück</ThemedText>
-                                  <ThemedText style={styles.entryText}>📅 {new Date(entry.date.toDate()).toLocaleDateString()}</ThemedText>
+                                  <ThemedText style={styles.entryText}>⚖️ {entry.amount} g</ThemedText>
+                                  <ThemedText style={styles.entryText}>🏷️ {getKiloPreis(entry.amount, entry.price)} €/kg</ThemedText>
                               </View>
                           )}
                       />
